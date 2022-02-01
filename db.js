@@ -1,4 +1,6 @@
-const url = "mongodb+srv://boatapi-user:MMvfwNtIpwqyDnKClBpk@cluster0.bc2ay.mongodb.net/";
+require('dotenv').config()
+
+const url = "mongodb+srv://" + process.env.DB_USERNAME + ":" + process.env.DB_PASSWORD + "@cluster0.bc2ay.mongodb.net/";
 const params = "?retryWrites=true&w=majority";
 
 exports.data = {
