@@ -28,6 +28,11 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     - run: npm ci
+    - name: Generate .env file for DB connection
+      uses: SpicyPizza/create-envfile@v1
+      with:
+        env_DB_USERNAME: ${{ secrets.DB_USERNAME }}
+        env_DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
     - run: npm run build --if-present
     - run: npm test
     
