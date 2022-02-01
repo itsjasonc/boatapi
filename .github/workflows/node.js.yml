@@ -6,8 +6,6 @@ name: Node.js CI
 on:
   push:
     branches: [ master ]
-  pull_request:
-    branches: [ master ]
 
 jobs:
   build:
@@ -31,8 +29,8 @@ jobs:
     - name: Generate .env file for DB connection
       uses: SpicyPizza/create-envfile@v1
       with:
-        env_DB_USERNAME: ${{ secrets.DB_USERNAME }}
-        env_DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        envkey_DB_USERNAME: ${{ secrets.DB_USERNAME }}
+        envkey_DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
     - run: npm run build --if-present
     - run: npm test
     
