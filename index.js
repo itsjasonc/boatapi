@@ -6,7 +6,7 @@ const createServer = require('./server');
 mongoose.connect("mongodb://localhost:27017/boatapidb", { useNewUrlParser: true })
 	.then(() => {
 		const app = createServer();
-		const port = 3000;
+		const port = 3001;
 
 		app.listen(port, () => {
 			console.log("BoatAPI has started.");

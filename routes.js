@@ -8,7 +8,7 @@ const ObjectId = require('mongoose').Types.ObjectId;
 // Get all swimlanes
 router.get("/swimlane", async(req, res) => {
 	const swimlanes = await Swimlane.find()
-	res.send(swimlanes);
+	res.json(swimlanes);
 });
 
 // Create a swimlane
@@ -18,17 +18,17 @@ router.post("/swimlane", async(req, res) => {
 	});
 
 	await swimlane.save();
-	res.send(swimlane);
+	res.json(swimlane);
 });
 
 // Get an individual swimlane
 router.get("/swimlane/:id", async(req, res) => {
 	try {
 		const swimlane = await Swimlane.findOne({ _id: req.params.id });
-		res.send(swimlane);
+		res.json(swimlane);
 	} catch {
 		res.status(404);
-		res.send({ error: "Swimlane doesn't exist." });
+		res.json({ error: "Swimlane doesn't exist." });
 	}
 });
 
@@ -42,10 +42,10 @@ router.patch("/swimlane/:id", async(req, res) => {
 		}
 
 		await swimlane.save();
-		res.send(swimlane);
+		res.json(swimlane);
 	} catch {
 		res.status(404);
-		res.send({ error: "Swimlane doesn't exist." });
+		res.json({ error: "Swimlane doesn't exist." });
 	}
 });
 
@@ -53,17 +53,17 @@ router.patch("/swimlane/:id", async(req, res) => {
 router.delete("/swimlane/:id", async(req, res) => {
 	try {
 		await Swimlane.deleteOne({ _id: req.params.id });
-		res.status(204).send();
+		res.status(204).json();
 	} catch {
 		res.status(404);
-		res.send({ error: "Swimlane doesn't exist." });
+		res.json({ error: "Swimlane doesn't exist." });
 	}
 });
 
 // Get all boats
 router.get("/boat", async(req, res) => {
 	const boats = await Boat.find()
-	res.send(boats);
+	res.json(boats);
 });
 
 // Create a boat
@@ -74,20 +74,25 @@ router.post("/boat", async(req, res) => {
 
 	if (req.body.inLane && ObjectId.isValid(req.body.inLane)) {
 		boat.inLane = new ObjectId(req.body.inLane);
+	} else {
+		const swimlane = await Swimlane.findOne();
+		if (swimlane) {
+			boat.inLane = swimlane._id;
+		}
 	}
 
 	await boat.save();
-	res.send(boat);
+	res.json(boat);
 });
 
 // Get an individual boat
 router.get("/boat/:id", async(req, res) => {
 	try {
 		const boat = await Boat.findOne({ _id: req.params.id });
-		res.send(boat);
+		res.json(boat);
 	} catch {
 		res.status(404);
-		res.send({ error: "Boat doesn't exist." });
+		res.json({ error: "Boat doesn't exist." });
 	}
 });
 
@@ -105,10 +110,10 @@ router.patch("/boat/:id", async(req, res) => {
 		}
 
 		await boat.save();
-		res.send(boat);
+		res.json(boat);
 	} catch {
 		res.status(404);
-		res.send({ error: "Boat doesn't exist." });
+		res.json({ error: "Boat doesn't exist." });
 	}
 });
 
@@ -116,10 +121,10 @@ router.patch("/boat/:id", async(req, res) => {
 router.delete("/boat/:id", async(req, res) => {
 	try {
 		await Boat.deleteOne({ _id: req.params.id });
-		res.status(204).send();
+		res.status(204).json();
 	} catch {
 		res.status(404);
-		res.send({ error: "Boat doesn't exist." });
+		res.json({ error: "Boat doesn't exist." });
 	}
 });
 
