@@ -4,24 +4,24 @@ const Swimlane = require('./models/Swimlane');
 const Boat = require('./models/Boat');
 const request = require('supertest');
 
+const db = require('./db');
 
-beforeEach((done) => {
-	mongoose.connect(
-		"mongodb://localhost:27017/boatapidb",
-		{ useNewUrlParser: true },
-		() => done()
-	)
+const url = db.data.url + "BoatDB-test" + db.data.params;
+
+beforeAll(async() => {
+	await mongoose.connect(url, { useNewUrlParser: true });
 });
 
-afterEach((done) => {
-	mongoose.connection.db.dropDatabase(() => {
-		mongoose.connection.close(() => done());
-	});
+afterAll(async() => {
+	await mongoose.connection.close();
+});
+
+afterEach(async() => {
+	await Swimlane.deleteMany();
+	await Boat.deleteMany();
 });
 
 const app = createServer();
-
-
 
 
 /* We begin testing the API here */
