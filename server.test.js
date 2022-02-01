@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const createServer = require('./server');
-const Swimlane = require('./models/Swimlane');
-const Boat = require('./models/Boat');
+const { Swimlane, Boat } = require('./models');
+const { swimlaneService, boatService } = require('./services');
 const request = require('supertest');
 
 const db = require('./db');
@@ -28,9 +28,7 @@ const app = createServer();
 
 // Getting all Swimlanes
 test("GET /api/swimlane", async() => {
-	const swimlane = await Swimlane.create({
-		name: "Swimlane 1"
-	});
+	const swimlane = await swimlaneService.save({ name: "Swimlane 1" });
 
 	await request(app)
 		.get("/api/swimlane")
@@ -48,9 +46,7 @@ test("GET /api/swimlane", async() => {
 
 // Get a single swimlane
 test("GET /api/swimlane/:id", async() => {
-	const swimlane = await Swimlane.create({
-		name: "Swimlane 1"
-	});
+	const swimlane = await swimlaneService.save({ name: "Swimlane 1" });
 
 	await request(app)
 		.get("/api/swimlane/" + swimlane.id)
@@ -59,6 +55,29 @@ test("GET /api/swimlane/:id", async() => {
 			// Check the response data
 			expect(response.body._id).toBe(swimlane.id);
 			expect(response.body.name).toBe(swimlane.name);
+		});
+});
+
+test("GET /api/swimlane/:id on ID that doesn't exist", async() => {
+	const swimlane = await swimlaneService.save({ name: "Swimlane 1" });
+
+	// Using a valid ObjectId that doesn't actually exist.. hopefully
+	await request(app)
+		.get("/api/swimlane/" + "61f79b8f47de80b5546b8bff")
+		.expect(404)
+		.then((response) => {
+			expect(response.body).toBe("Resource not found.");
+		});
+});
+
+test("GET /api/swimlane/:id on ID that is not an ObjectId", async() => {
+	const swimlane = await swimlaneService.save({ name: "Swimlane 1" });
+
+	// Using a valid ObjectId that doesn't actually exist.. hopefully
+	await request(app)
+		.get("/api/swimlane/" + "not_object_id")
+		.expect(500)
+		.then((response) => {
 		});
 });
 
@@ -78,7 +97,7 @@ test("POST /api/swimlane", async() => {
 			expect(response.body.name).toBe(data.name);
 
 			// Check the database
-			const swimlane = await Swimlane.findOne({ _id: response.body._id });
+			const swimlane = await swimlaneService.findOne(response.body._id);
 			expect(swimlane).toBeTruthy();
 			expect(swimlane.name).toBe(data.name);
 		});
@@ -86,9 +105,7 @@ test("POST /api/swimlane", async() => {
 
 // Update a single swimlane
 test("PATCH /api/swimlane/:id", async() => {
-	const swimlane = await Swimlane.create({
-		name: "Swimlane 1"
-	});
+	const swimlane = await swimlaneService.save({ name: "Swimlane 1" });
 
 	const data = {
 		name: "Swimlane UPDATED"
@@ -101,36 +118,31 @@ test("PATCH /api/swimlane/:id", async() => {
 		.then(async(response) => {
 			// Check the response
 			expect(response.body._id).toBe(swimlane.id);
-			expect(response.body.name).toBe(escape(data.name));
+			expect(response.body.name).toBe(data.name);
 
 			// Check the database
 			const updatedSwimlane = await Swimlane.findOne({ _id: response.body._id });
 			expect(updatedSwimlane).toBeTruthy();
-			// Testing against the escaped version because we sanitize the string before putting it in the database
-			expect(updatedSwimlane.name).toBe(escape(data.name));
+			expect(updatedSwimlane.name).toBe(data.name);
 		});
 });
 
 // DELETE a single swimlane
 test("DELETE /api/swimlane/:id", async() => {
-	const swimlane = await Swimlane.create({
-		name: "Swimlane 1"
-	});
+	const swimlane = await swimlaneService.save({ name: "Swimlane 1" });
 
 	await request(app)
 		.delete("/api/swimlane/" + swimlane.id)
 		.expect(204)
 		.then(async () => {
 			// We shouldn't be able to find the swimlane
-			expect(await Swimlane.findOne({ _id: swimlane.id })).toBeFalsy();
+			expect(await swimlaneService.findOne(swimlane.id)).toBeFalsy();
 		});
 });
 
 // Getting all Boats
 test("GET /api/boat", async() => {
-	const boat = await Boat.create({
-		name: "Boat 1"
-	});
+	const boat = await boatService.save({ name: "Boat 1" });
 
 	await request(app)
 		.get("/api/boat")
@@ -148,9 +160,7 @@ test("GET /api/boat", async() => {
 
 // Get a single boat
 test("GET /api/boat/:id", async() => {
-	const boat = await Boat.create({
-		name: "Boat 1"
-	});
+	const boat = await boatService.save({ name: "Boat 1" });
 
 	await request(app)
 		.get("/api/boat/" + boat.id)
@@ -178,7 +188,7 @@ test("POST /api/boat", async() => {
 			expect(response.body.name).toBe(data.name);
 
 			// Check the database
-			const boat = await Boat.findOne({ _id: response.body._id });
+			const boat = await boatService.findOne(response.body._id);
 			expect(boat).toBeTruthy();
 			expect(boat.name).toBe(data.name);
 		});
@@ -186,18 +196,11 @@ test("POST /api/boat", async() => {
 
 // Update a single boat
 test("PATCH /api/boat/:id", async() => {
-	const swimlaneOne = await Swimlane.create({
-		name: "Swimlane 1"
-	});
-	const swimlaneTwo = await Swimlane.create({
-		name: "Swimlane 2"
-	});
+	const swimlaneOne = await swimlaneService.save({ name: "Swimlane 1" });
+	const swimlaneTwo = await swimlaneService.save({ name: "Swimlane 2" });
 
 	// We put the boat in the first swimlane
-	const boat = await Boat.create({
-		name: "Boat 1",
-		inLane: swimlaneOne.id
-	});
+	const boat = await boatService.save({ name: "Boat 1", inLane: swimlaneOne.id });
 
 	const data = {
 		name: "Boat UPDATED",
@@ -212,29 +215,27 @@ test("PATCH /api/boat/:id", async() => {
 		.then(async(response) => {
 			// Check the response
 			expect(response.body._id).toBe(boat.id);
-			expect(response.body.name).toBe(escape(data.name));
-			expect(response.body.inLane).toBe(escape(data.inLane));
+			expect(response.body.name).toBe(data.name);
+			expect(response.body.inLane).toBe(data.inLane);
 
 			// Check the database
-			const updatedBoat = await Boat.findOne({ _id: response.body._id });
+			const updatedBoat = await boatService.findOne(response.body._id);
 			expect(updatedBoat).toBeTruthy();
-			// Testing against the escaped version because we sanitize the string before putting it in the database
-			expect(updatedBoat.name).toBe(escape(data.name));
-			expect(updatedBoat.inLane.toString()).toBe(escape(data.inLane));
+			expect(updatedBoat.name).toBe(data.name);
+			expect(updatedBoat.inLane.toString()).toBe(data.inLane);
 		});
 });
 
 // DELETE a single boat
 test("DELETE /api/boat/:id", async() => {
-	const boat = await Boat.create({
-		name: "Boat 1"
-	});
+	const boat = await boatService.save({ name: "Boat 1" });
 
 	await request(app)
 		.delete("/api/boat/" + boat.id)
 		.expect(204)
 		.then(async () => {
 			// We shouldn't be able to find the swimlane
-			expect(await Boat.findOne({ _id: boat.id })).toBeFalsy();
+			expect(await boatService.findOne(boat.id)).toBeFalsy();
 		});
 });
+
