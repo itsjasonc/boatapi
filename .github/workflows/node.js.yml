@@ -31,6 +31,7 @@ jobs:
       with:
         envkey_DB_USERNAME: ${{ secrets.DB_USERNAME }}
         envkey_DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        envkey_DB_NAME: ${{ secrets.DB_NAME }}
     - run: npm run build --if-present
     - run: npm test
     
