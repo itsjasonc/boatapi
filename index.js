@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const createServer = require('./server');
 const db = require('./db');
 
-const url = db.data.url + "BoatDB" + db.data.params;
+const url = db.data.url + db.data.name + db.data.params;
 
 const port = process.env.PORT || 3000;
 
